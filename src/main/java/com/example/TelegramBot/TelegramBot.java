@@ -1,22 +1,19 @@
 package com.example.TelegramBot;
 
+import com.example.TelegramBot.CommandsManager.CreateProfileManager;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class TelegramBot extends TelegramLongPollingBot {
+
+    private final CreateProfileManager createProfileManager;
+
+    public TelegramBot(CreateProfileManager createProfileManager) {
+        this.createProfileManager = createProfileManager;
+    }
 
     @Override
     public String getBotUsername() {
@@ -31,19 +28,16 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         String[] message = update.getMessage().getText().split("\\s+");
-        SendMessage testMessage = new SendMessage();
-        testMessage.setChatId(update.getMessage().getChatId());
-        testMessage.setText("Test message");
-        KeyboardRow row = new KeyboardRow();
-        KeyboardButton button = new KeyboardButton();
-        testMessage.setReplyMarkup(new ReplyKeyboardMarkup());
 
-
-        try {
-            execute(testMessage);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+        //Profile Creation
+        if (message[0].equalsIgnoreCase("/createprofile")) {
+            SendMessage sendMessage = createProfileManager.startNewProfileCreation(update);
+            System.out.println(sendMessage.getText());
+            try {
+                execute(sendMessage);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
         }
-
     }
 }
