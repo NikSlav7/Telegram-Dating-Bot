@@ -16,16 +16,22 @@ public class ProfileCreationMarkupManager {
 
     public static ReplyKeyboardMarkup getProfileCreationDefaultMarkup() {
         ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
-        KeyboardButton cancelButton = new KeyboardButton("Cancel");
+        KeyboardButton cancelButton = new KeyboardButton("Cancel ❌");
+        KeyboardButton restartButton = new KeyboardButton("Restart \uD83D\uDD19");
         //adding buttons to rows
         KeyboardRow firstRow = new KeyboardRow();
         firstRow.add(cancelButton);
+        KeyboardRow secondRow = new KeyboardRow();
+        secondRow.add(restartButton);
 
         //adding rows to keyboard
         List<KeyboardRow> buttonsList = new ArrayList<>();
         buttonsList.add(firstRow);
+        buttonsList.add(secondRow);
 
         markup.setKeyboard(buttonsList);
+
         return markup;
     }
+
 }

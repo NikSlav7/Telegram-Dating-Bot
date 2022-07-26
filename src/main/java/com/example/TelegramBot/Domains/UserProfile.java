@@ -1,10 +1,7 @@
 package com.example.TelegramBot.Domains;
 
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Date;
 
 @Table
@@ -12,7 +9,7 @@ import java.sql.Date;
 public class UserProfile extends Profile{
 
     @Id
-    String id;
+    long id;
 
     String firstName;
 
@@ -25,9 +22,24 @@ public class UserProfile extends Profile{
 
     String profilePictureLink;
 
-    Date dateOfBirth;
+    String userShownLocation;
 
-    public UserProfile(String id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth) {
+
+    String userDefaultLocation;
+
+    String userLatestLocation;
+
+    String lastInvokedCommand;
+
+    @Enumerated(value = EnumType.ORDINAL)
+    UserProfileRegistrationStage profileRegistrationStage;
+
+    java.util.Date dateOfBirth;
+
+
+
+    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  String userDefaultLocation, String userLatestLocation,
+    String userShownLocation, String lastInvokedCommand, UserProfileRegistrationStage profileRegistrationStage) {
         super(firstName, secondName, dateOfBirth);
         this.id = id;
         this.firstName = firstName;
@@ -36,6 +48,11 @@ public class UserProfile extends Profile{
         this.additionalInfo = additionalInfo;
         this.profilePictureLink = profilePictureLink;
         this.dateOfBirth = dateOfBirth;
+        this.userDefaultLocation = userDefaultLocation;
+        this.userLatestLocation = userLatestLocation;
+        this.userShownLocation = userShownLocation;
+        this.lastInvokedCommand = lastInvokedCommand;
+        this.profileRegistrationStage = profileRegistrationStage;
     }
 
 
@@ -43,11 +60,11 @@ public class UserProfile extends Profile{
         super();
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -91,11 +108,51 @@ public class UserProfile extends Profile{
         this.profilePictureLink = profilePictureLink;
     }
 
-    public Date getDateOfBirth() {
+    public java.util.Date getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(java.util.Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getUserShownLocation() {
+        return userShownLocation;
+    }
+
+    public void setUserShownLocation(String userShownLocation) {
+        this.userShownLocation = userShownLocation;
+    }
+
+    public String getUserDefaultLocation() {
+        return userDefaultLocation;
+    }
+
+    public void setUserDefaultLocation(String userDefaultLocation) {
+        this.userDefaultLocation = userDefaultLocation;
+    }
+
+    public String getUserLatestLocation() {
+        return userLatestLocation;
+    }
+
+    public void setUserLatestLocation(String userLatestLocation) {
+        this.userLatestLocation = userLatestLocation;
+    }
+
+    public String getLastInvokedCommand() {
+        return lastInvokedCommand;
+    }
+
+    public void setLastInvokedCommand(String lastInvokedCommand) {
+        this.lastInvokedCommand = lastInvokedCommand;
+    }
+
+    public UserProfileRegistrationStage getProfileRegistrationStage() {
+        return profileRegistrationStage;
+    }
+
+    public void setProfileRegistrationStage(UserProfileRegistrationStage profileRegistrationStage) {
+        this.profileRegistrationStage = profileRegistrationStage;
     }
 }

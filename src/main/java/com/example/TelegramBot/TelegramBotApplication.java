@@ -1,6 +1,8 @@
 package com.example.TelegramBot;
 
-import com.example.TelegramBot.CommandsManager.CreateProfileManager;
+import com.example.TelegramBot.Domains.UserProfile;
+import com.example.TelegramBot.JDBC.UserProfileJDBC;
+import com.example.TelegramBot.Repositories.UserProfileRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -14,10 +16,15 @@ public class TelegramBotApplication {
 	public static void main(String[] args) {
 
 		ConfigurableApplicationContext context = SpringApplication.run(TelegramBotApplication.class);
-		CreateProfileManager createProfileManager = context.getBean(CreateProfileManager.class);
+
+		UserProfileRepository userProfileRepository = context.getBean(UserProfileRepository.class);
+
+		UserProfileJDBC userProfileJDBC = context.getBean(UserProfileJDBC.class);
+
+
 		try {
 			TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-			telegramBotsApi.registerBot(new TelegramBot(createProfileManager));
+			telegramBotsApi.registerBot(new TelegramBot( userProfileRepository, userProfileJDBC));
 		} catch (TelegramApiException exception) {
 			exception.printStackTrace();
 		}
