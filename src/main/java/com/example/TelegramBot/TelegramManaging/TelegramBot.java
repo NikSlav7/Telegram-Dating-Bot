@@ -1,4 +1,4 @@
-package com.example.TelegramBot;
+package com.example.TelegramBot.TelegramManaging;
 
 import com.example.TelegramBot.Domains.UserProfile;
 import com.example.TelegramBot.Domains.UserProfileRegistrationStage;
@@ -8,6 +8,7 @@ import com.example.TelegramBot.MessageSenders.RegistrationMessageSender;
 import com.example.TelegramBot.RegistrationStagesManager.RegistrationStagesManager;
 import com.example.TelegramBot.Repositories.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -20,6 +21,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+
+@Component
 public class TelegramBot extends TelegramLongPollingBot {
 
 
