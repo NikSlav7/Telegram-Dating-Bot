@@ -11,7 +11,7 @@ public class RegistrationStagesManager {
     public static void increaseRegistrationStage(UserProfileRegistrationStage registrationStage, UserProfile userProfile){
         UserProfileRegistrationStage[] stages = UserProfileRegistrationStage.values();
         for (int i = 0; i < stages.length; i++) {
-            if (stages[i] == registrationStage && i != stages.length - 1) userProfile.setProfileRegistrationStage(stages[i+1]);
+            if (stages[i].equals(registrationStage) && i != stages.length - 1) userProfile.setProfileRegistrationStage(stages[i+1]);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.TelegramBot.MessageSenders;
 
 
+import com.amazonaws.services.dynamodbv2.xspec.S;
 import org.jvnet.hk2.annotations.Service;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,6 +15,8 @@ public class ErrorMessageSender {
     public static final String TOO_HIGH_AGE = "You can't be that old, please set your real age";
 
     public static final String NUMBERS_IN_LOCATION_NAME = "Your location should contain only LETTERS!";
+
+    public static final String PHOTO_NOT_PROVIDED = "Please provide profile Photo. No text needed";
 
 
     public static SendMessage sendNewErrorMessage(Long chatId, String message) {
