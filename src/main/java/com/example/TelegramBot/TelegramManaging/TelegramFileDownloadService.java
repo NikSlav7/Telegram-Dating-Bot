@@ -32,7 +32,7 @@ public class TelegramFileDownloadService {
 
         InputStream inputStream = new URL("https://api.telegram.org/file/bot" + telegramBot.getBotToken() + "/" + getFilePath(fileId)).openStream();
 
-    File file = new File("/home/nikslav/Downloads/" + generateFileName(ownerUserId));
+    File file = new File(generateFileName(ownerUserId));
     FileOutputStream fileOutputStream = new FileOutputStream(file);
     byte[] buffer = new byte[1024];
     int c = 0;

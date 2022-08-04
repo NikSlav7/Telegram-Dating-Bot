@@ -28,7 +28,7 @@ class TelegramBotApplicationTests {
 
 	@Test
 	void downloadTelegramPicture() throws TelegramApiException, IOException, InterruptedException {
-		System.out.println(telegramFileDownloadService.downloadFile("AgACAgQAAxkBAAICfmLrlSiatdZOmP_Ye6W8kvGitmONAAKdtjEbUk9gUzJU0jmcS52kAQADAgADcwADKQQ"));
+		System.out.println(telegramFileDownloadService.downloadFile("AgACAgQAAxkBAAICfmLrlSiatdZOmP_Ye6W8kvGitmONAAKdtjEbUk9gUzJU0jmcS52kAQADAgADcwADKQQ", 1));
 	}
 
 
