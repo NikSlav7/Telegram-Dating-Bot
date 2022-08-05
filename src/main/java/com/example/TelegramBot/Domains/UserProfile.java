@@ -1,6 +1,8 @@
 package com.example.TelegramBot.Domains;
 
 
+import org.springframework.stereotype.Component;
+
 import javax.persistence.*;
 import java.sql.Date;
 
@@ -25,9 +27,26 @@ public class UserProfile extends Profile{
     String userShownLocation;
 
 
-    String userDefaultLocation;
 
-    String userLatestLocation;
+
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "default_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "default_longitude")),
+            @AttributeOverride(name = "countryName", column = @Column(name = "default_country_name")),
+            @AttributeOverride(name = "cityName", column = @Column(name = "default_city_name")),
+    })
+    @Embedded
+    Location userDefaultLocation;
+
+
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "latest_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "latest_longitude")),
+            @AttributeOverride(name = "countryName", column = @Column(name = "latest_country_name")),
+            @AttributeOverride(name = "cityName", column = @Column(name = "latest_city_name")),
+    })
+    @Embedded
+    Location userLatestLocation;
 
     String lastInvokedCommand;
 
@@ -38,8 +57,8 @@ public class UserProfile extends Profile{
 
 
 
-    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  String userDefaultLocation, String userLatestLocation,
-    String userShownLocation, String lastInvokedCommand, UserProfileRegistrationStage profileRegistrationStage) {
+    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  Location userDefaultLocation, Location userLatestLocation,
+    String  userShownLocation, String lastInvokedCommand, UserProfileRegistrationStage profileRegistrationStage) {
         super(firstName, secondName, dateOfBirth);
         this.id = id;
         this.firstName = firstName;
@@ -124,19 +143,19 @@ public class UserProfile extends Profile{
         this.userShownLocation = userShownLocation;
     }
 
-    public String getUserDefaultLocation() {
+    public Location getUserDefaultLocation() {
         return userDefaultLocation;
     }
 
-    public void setUserDefaultLocation(String userDefaultLocation) {
+    public void setUserDefaultLocation(Location userDefaultLocation) {
         this.userDefaultLocation = userDefaultLocation;
     }
 
-    public String getUserLatestLocation() {
+    public Location getUserLatestLocation() {
         return userLatestLocation;
     }
 
-    public void setUserLatestLocation(String userLatestLocation) {
+    public void setUserLatestLocation(Location userLatestLocation) {
         this.userLatestLocation = userLatestLocation;
     }
 

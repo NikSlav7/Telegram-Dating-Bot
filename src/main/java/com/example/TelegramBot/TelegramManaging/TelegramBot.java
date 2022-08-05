@@ -1,6 +1,8 @@
 package com.example.TelegramBot.TelegramManaging;
 
 import com.example.TelegramBot.AmazonServices.AmazonPicturesManager;
+import com.example.TelegramBot.Domains.Location;
+import com.example.TelegramBot.Domains.Profile;
 import com.example.TelegramBot.Domains.UserProfile;
 import com.example.TelegramBot.Domains.UserProfileRegistrationStage;
 import com.example.TelegramBot.JDBC.UserProfileJDBC;
@@ -8,6 +10,7 @@ import com.example.TelegramBot.MessageSenders.ErrorMessageSender;
 import com.example.TelegramBot.MessageSenders.ProfileInfoSender;
 import com.example.TelegramBot.MessageSenders.RegistrationMessageSender;
 import com.example.TelegramBot.RegistrationStagesManager.RegistrationStagesManager;
+import com.example.TelegramBot.ReplyMarkupManager.ProfileCreationMarkupManager;
 import com.example.TelegramBot.Repositories.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +19,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
@@ -88,8 +92,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             userProfileRepository.save(commandExecutor);
             //Profile Creation
             if (message[0].equalsIgnoreCase("/createprofile")) {
-                SendMessage welcomeMessage = RegistrationMessageSender.sendUserRegistrationMessage(chatId, UserProfileRegistrationStage.NO_INFORMATION.getMessage());
-                SendMessage nameAskingMessage = RegistrationMessageSender.sendNextStepRegistrationMessage(chatId, commandExecutor.getProfileRegistrationStage());
+                SendMessage welcomeMessage = RegistrationMessageSender.sendUserRegistrationMessage(chatId, UserProfileRegistrationStage.NO_INFORMATION.getMessage(), true);
+                SendMessage nameAskingMessage = RegistrationMessageSender.sendNextStepRegistrationMessage(chatId, commandExecutor.getProfileRegistrationStage(), ProfileCreationMarkupManager.getProfileCreationDefaultMarkup());
                 try {
                     execute(welcomeMessage);
                     execute(nameAskingMessage);
@@ -103,7 +107,21 @@ public class TelegramBot extends TelegramLongPollingBot {
             //getting users lastly invoked command.
             String lastlyInvokedCommand = commandExecutor.getLastInvokedCommand();
 
+
+            //If user creates profile
             if (lastlyInvokedCommand.equalsIgnoreCase("/createprofile")) {
+                //Check if user wants to restart the registration
+                if (update.getMessage().getPhoto() != null && update.getMessage().getText().equalsIgnoreCase(ProfileCreationMarkupManager.RESTART_REGISTRATION)) {
+                    commandExecutor.setProfileRegistrationStage(UserProfileRegistrationStage.NO_INFORMATION);
+                    userProfileRepository.save(commandExecutor);
+                    SendMessage welcomeMessage = RegistrationMessageSender.sendUserRegistrationMessage(chatId, UserProfileRegistrationStage.NAME_PROVIDED.getMessage(), true);
+                    try {
+                        execute(welcomeMessage);
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return;
+                }
                 UserProfileRegistrationStage registrationStage = commandExecutor.getProfileRegistrationStage();
                 if (registrationStage == UserProfileRegistrationStage.REGISTRATION_COMPLETED) return;
                 //Checking users REGISTRATION stage.
@@ -150,7 +168,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
 
                     case AGE_PROVIDED -> {
-                        if (message[0] == null || !message[0].matches("[a-z]+")) {
+                        if (update.getMessage().getLocation() == null) {
                             try {
                                 execute(ErrorMessageSender.sendNewErrorMessage(chatId, ErrorMessageSender.WRONG_NAME_FORMAT));
                                 break;
@@ -158,8 +176,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                                 throw new RuntimeException(e);
                             }
                         }
-                        //Setting The Location that will be show to other profiles
-                        commandExecutor.setUserShownLocation(message[0]);
+                        org.telegram.telegrambots.meta.api.objects.Location telegramGivenLocation = update.getMessage().getLocation();
+                        Location defaultLocation = new Location(telegramGivenLocation.getLatitude(), telegramGivenLocation.getLongitude(), "", "");
+                        commandExecutor.setUserDefaultLocation(defaultLocation);
                     }
 
                     case DEFAULT_LOCATION_PROVIDED -> {
@@ -216,12 +235,15 @@ public class TelegramBot extends TelegramLongPollingBot {
 //                    }
 
                 }
-                //Increasing the users Registration stage by 1
+
+
+              //Increasing the users Registration stage by 1
                 RegistrationStagesManager.increaseRegistrationStage(commandExecutor.getProfileRegistrationStage(), commandExecutor);
                 //Saving changes to repo
                 userProfileRepository.save(commandExecutor);
-                try {
-                    execute(RegistrationMessageSender.sendNextStepRegistrationMessage(chatId, commandExecutor.getProfileRegistrationStage()));
+                    try {
+                        ReplyKeyboardMarkup replyKeyboardMarkup =  ProfileCreationMarkupManager.getProfileCreationDefaultMarkup();
+                    execute(RegistrationMessageSender.sendNextStepRegistrationMessage(chatId, commandExecutor.getProfileRegistrationStage(), replyKeyboardMarkup));
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
