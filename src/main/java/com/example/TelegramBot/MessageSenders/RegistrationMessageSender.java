@@ -15,7 +15,7 @@ public class RegistrationMessageSender {
         sendMessage.setText(message);
         sendMessage.setChatId(sendChatId);
 
-        if (addMarkup) sendMessage.setReplyMarkup(ProfileCreationMarkupManager.getProfileCreationDefaultMarkup());
+        if (addMarkup) sendMessage.setReplyMarkup(ProfileCreationMarkupManager.getDefaultMarkup());
         return sendMessage;
     }
     public static SendMessage sendNextStepRegistrationMessage(long sendChatId, UserProfileRegistrationStage currentRegistrationStage, ReplyKeyboardMarkup keyboardMarkup) {

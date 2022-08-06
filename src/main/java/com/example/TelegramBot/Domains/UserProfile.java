@@ -5,10 +5,11 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.Set;
 
 @Table
 @Entity
-public class UserProfile extends Profile{
+public class UserProfile{
 
     @Id
     long id;
@@ -24,8 +25,15 @@ public class UserProfile extends Profile{
 
     String profilePictureLink;
 
-    String userShownLocation;
 
+
+    //profiles that were offered to user
+    @OneToMany(mappedBy = "askedUserProfile")
+    Set<WatchedProfile> askedProfiles;
+
+    //profiles that this profile was offered to
+    @OneToMany(mappedBy = "reviewedUserProfile")
+    Set<WatchedProfile> reviewedBy;
 
 
 
@@ -33,7 +41,9 @@ public class UserProfile extends Profile{
             @AttributeOverride(name = "latitude", column = @Column(name = "default_latitude")),
             @AttributeOverride(name = "longitude", column = @Column(name = "default_longitude")),
             @AttributeOverride(name = "countryName", column = @Column(name = "default_country_name")),
+            @AttributeOverride(name = "regionName", column = @Column(name = "default_region_name")),
             @AttributeOverride(name = "cityName", column = @Column(name = "default_city_name")),
+
     })
     @Embedded
     Location userDefaultLocation;
@@ -43,6 +53,7 @@ public class UserProfile extends Profile{
             @AttributeOverride(name = "latitude", column = @Column(name = "latest_latitude")),
             @AttributeOverride(name = "longitude", column = @Column(name = "latest_longitude")),
             @AttributeOverride(name = "countryName", column = @Column(name = "latest_country_name")),
+            @AttributeOverride(name = "regionName", column = @Column(name = "latest_region_name")),
             @AttributeOverride(name = "cityName", column = @Column(name = "latest_city_name")),
     })
     @Embedded
@@ -51,15 +62,19 @@ public class UserProfile extends Profile{
     String lastInvokedCommand;
 
     @Enumerated(value = EnumType.ORDINAL)
+    @Column(nullable = false)
     UserProfileRegistrationStage profileRegistrationStage;
+
+
+    @Enumerated(value = EnumType.ORDINAL)
+    @Column(nullable = false)
+    ProfileSeekingMode profileSeekingMode;
 
     java.util.Date dateOfBirth;
 
 
 
-    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  Location userDefaultLocation, Location userLatestLocation,
-    String  userShownLocation, String lastInvokedCommand, UserProfileRegistrationStage profileRegistrationStage) {
-        super(firstName, secondName, dateOfBirth);
+    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  Location userDefaultLocation, Location userLatestLocation, String lastInvokedCommand, UserProfileRegistrationStage profileRegistrationStage) {
         this.id = id;
         this.firstName = firstName;
         this.secondName = secondName;
@@ -69,14 +84,16 @@ public class UserProfile extends Profile{
         this.dateOfBirth = dateOfBirth;
         this.userDefaultLocation = userDefaultLocation;
         this.userLatestLocation = userLatestLocation;
-        this.userShownLocation = userShownLocation;
         this.lastInvokedCommand = lastInvokedCommand;
         this.profileRegistrationStage = profileRegistrationStage;
+        profileSeekingMode = ProfileSeekingMode.NOT_SEEKING;
+
     }
 
 
     public UserProfile() {
-        super();
+        profileSeekingMode = ProfileSeekingMode.NOT_SEEKING;
+        profileRegistrationStage = UserProfileRegistrationStage.NO_INFORMATION;
     }
 
     public long getId() {
@@ -135,13 +152,6 @@ public class UserProfile extends Profile{
         this.dateOfBirth = dateOfBirth;
     }
 
-    public String getUserShownLocation() {
-        return userShownLocation;
-    }
-
-    public void setUserShownLocation(String userShownLocation) {
-        this.userShownLocation = userShownLocation;
-    }
 
     public Location getUserDefaultLocation() {
         return userDefaultLocation;
@@ -173,5 +183,48 @@ public class UserProfile extends Profile{
 
     public void setProfileRegistrationStage(UserProfileRegistrationStage profileRegistrationStage) {
         this.profileRegistrationStage = profileRegistrationStage;
+    }
+
+    public void resetProfile(){
+        UserProfile profile = new UserProfile();
+        firstName = null;
+        secondName = null;
+        hobbies = null;
+        additionalInfo = null;
+        profilePictureLink = null;
+        userDefaultLocation = null;
+        userLatestLocation = null;
+        profileRegistrationStage = UserProfileRegistrationStage.NO_INFORMATION;
+        dateOfBirth = null;
+    }
+
+    public Set<WatchedProfile> getAskedProfiles() {
+        return askedProfiles;
+    }
+
+    public void setAskedProfiles(Set<WatchedProfile> askedProfiles) {
+        this.askedProfiles = askedProfiles;
+    }
+
+    public Set<WatchedProfile> getReviewedBy() {
+        return reviewedBy;
+    }
+
+    public void setReviewedBy(Set<WatchedProfile> reviewedBy) {
+        this.reviewedBy = reviewedBy;
+    }
+
+    public ProfileSeekingMode getProfileSeekingMode() {
+        return profileSeekingMode;
+    }
+
+    public void setProfileSeekingMode(ProfileSeekingMode profileSeekingMode) {
+        this.profileSeekingMode = profileSeekingMode;
+    }
+
+    public void setUserLatestLocation(org.telegram.telegrambots.meta.api.objects.Location location) {
+        if (userLatestLocation == null) userLatestLocation = new Location();
+        userLatestLocation.setLatitude(location.getLatitude());
+        userLatestLocation.setLongitude(location.getLongitude());
     }
 }

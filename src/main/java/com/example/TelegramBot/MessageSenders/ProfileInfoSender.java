@@ -2,6 +2,7 @@ package com.example.TelegramBot.MessageSenders;
 
 
 import com.example.TelegramBot.AmazonServices.AmazonPicturesManager;
+import com.example.TelegramBot.Domains.Location;
 import com.example.TelegramBot.Domains.UserProfile;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -34,11 +35,11 @@ public class ProfileInfoSender {
 
     public static SendPhoto sendProfileInfo(long sendChatId, UserProfile userProfile, File file) throws IOException {
         SendMediaGroup sendMediaGroup = new SendMediaGroup();
-        StringBuilder messageBuilder = new StringBuilder("Your profile review");
+        StringBuilder messageBuilder = new StringBuilder();
         messageBuilder
                 .append("\n" + userProfile.getFirstName() + " " + userProfile.getSecondName())
                 .append("\n" + Period.between(LocalDate.ofInstant(userProfile.getDateOfBirth().toInstant(), ZoneId.systemDefault()), LocalDate.now()).getYears() + " y.o")
-                .append("\n" + userProfile.getUserShownLocation())
+                .append("\n\n" + getLocation(userProfile.getUserDefaultLocation()))
                 .append("\n\n" + "Hobbies: \n" + userProfile.getHobbies())
                 .append("\n\n" + "Additional Info: \n" + userProfile.getAdditionalInfo());
 
@@ -51,6 +52,14 @@ public class ProfileInfoSender {
 
     }
 
+    private static String getLocation(Location location) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(location.getCityName() != null ? location.getCityName() + ", " : "");
+        builder.append(location.getRegionName() != null ? location.getRegionName() + ", " : "");
+        builder.append(location.getCountryName() != null ? location.getCountryName() : "");
+
+        return builder.toString();
+    }
 
 
 }

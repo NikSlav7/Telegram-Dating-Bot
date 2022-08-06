@@ -4,6 +4,8 @@ package com.example.TelegramBot.TelegramManaging;
 import com.amazonaws.services.dynamodbv2.xspec.S;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
+@EnableAsync
 public class TelegramFileDownloadService {
 
 
@@ -28,6 +31,8 @@ public class TelegramFileDownloadService {
     }
 
     //Returns file path
+
+    @Async
     public File downloadFile(String fileId, long ownerUserId) throws TelegramApiException, IOException, InterruptedException {
 
         InputStream inputStream = new URL("https://api.telegram.org/file/bot" + telegramBot.getBotToken() + "/" + getFilePath(fileId)).openStream();

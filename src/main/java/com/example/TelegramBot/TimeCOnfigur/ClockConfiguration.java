@@ -12,6 +12,6 @@ public class ClockConfiguration {
 
     @Bean
     public Clock getClock() {
-        return  Clock.systemDefaultZone();
+        return Clock.systemDefaultZone();
     }
 }

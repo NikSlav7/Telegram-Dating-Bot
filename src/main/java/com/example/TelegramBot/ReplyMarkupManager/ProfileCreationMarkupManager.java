@@ -1,6 +1,7 @@
 package com.example.TelegramBot.ReplyMarkupManager;
 
 
+import com.example.TelegramBot.Interfaces.ReplyKeyboardMarkupManager;
 import org.aspectj.weaver.tools.cache.CacheBacking;
 import org.jvnet.hk2.annotations.Service;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ProfileCreationMarkupManager {
+public class ProfileCreationMarkupManager implements ReplyKeyboardMarkupManager {
 
     public static final String CANCEL = "Cancel ❌";
 
@@ -23,7 +24,7 @@ public class ProfileCreationMarkupManager {
     public static final String SEND_LOCATION = "Send your location \uD83D\uDC4C";
 
 
-    public static ReplyKeyboardMarkup getProfileCreationDefaultMarkup() {
+    public static ReplyKeyboardMarkup getDefaultMarkup() {
         ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
         KeyboardButton restartButton = new KeyboardButton(RESTART_REGISTRATION);
         //adding buttons to rows

@@ -7,18 +7,23 @@ import java.io.Serializable;
 @Embeddable
 public class Location implements Serializable {
 
-    Double latitude;
+    private Double latitude;
 
-    Double longitude;
+    private Double longitude;
 
-    String countryName;
+    private String countryName;
 
-    String cityName;
+    private String regionName;
 
-    public Location(Double latitude, Double longitude, String countryName, String cityName) {
+    private String cityName;
+
+
+
+    public Location(Double latitude, Double longitude, String countryName, String regionName, String cityName) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.countryName = countryName;
+        this.regionName = regionName;
         this.cityName = cityName;
     }
 
@@ -56,5 +61,13 @@ public class Location implements Serializable {
 
     public void setCityName(String cityName) {
         this.cityName = cityName;
+    }
+
+    public String getRegionName() {
+        return regionName;
+    }
+
+    public void setRegionName(String regionName) {
+        this.regionName = regionName;
     }
 }
