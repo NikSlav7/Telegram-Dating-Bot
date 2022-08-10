@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Table
@@ -61,6 +62,8 @@ public class UserProfile{
 
     String lastInvokedCommand;
 
+    String commandToConfirm;
+
     @Enumerated(value = EnumType.ORDINAL)
     @Column(nullable = false)
     UserProfileRegistrationStage profileRegistrationStage;
@@ -70,11 +73,15 @@ public class UserProfile{
     @Column(nullable = false)
     ProfileSeekingMode profileSeekingMode;
 
+
     java.util.Date dateOfBirth;
 
+    long currentReviewingProfileId;
 
 
-    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  Location userDefaultLocation, Location userLatestLocation, String lastInvokedCommand, UserProfileRegistrationStage profileRegistrationStage) {
+
+    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  Location userDefaultLocation, Location userLatestLocation, String lastInvokedCommand, String commandToConfirm, UserProfileRegistrationStage profileRegistrationStage,
+                       long currentReviewingProfileId) {
         this.id = id;
         this.firstName = firstName;
         this.secondName = secondName;
@@ -85,7 +92,9 @@ public class UserProfile{
         this.userDefaultLocation = userDefaultLocation;
         this.userLatestLocation = userLatestLocation;
         this.lastInvokedCommand = lastInvokedCommand;
+        this.commandToConfirm = commandToConfirm;
         this.profileRegistrationStage = profileRegistrationStage;
+        this.currentReviewingProfileId = currentReviewingProfileId;
         profileSeekingMode = ProfileSeekingMode.NOT_SEEKING;
 
     }
@@ -94,6 +103,8 @@ public class UserProfile{
     public UserProfile() {
         profileSeekingMode = ProfileSeekingMode.NOT_SEEKING;
         profileRegistrationStage = UserProfileRegistrationStage.NO_INFORMATION;
+        askedProfiles = new HashSet<>();
+        reviewedBy = new HashSet<>();
     }
 
     public long getId() {
@@ -186,7 +197,6 @@ public class UserProfile{
     }
 
     public void resetProfile(){
-        UserProfile profile = new UserProfile();
         firstName = null;
         secondName = null;
         hobbies = null;
@@ -227,4 +237,22 @@ public class UserProfile{
         userLatestLocation.setLatitude(location.getLatitude());
         userLatestLocation.setLongitude(location.getLongitude());
     }
+
+    public long getCurrentReviewingProfileId() {
+        return currentReviewingProfileId;
+    }
+
+    public void setCurrentReviewingProfileId(long currentReviewingProfileId) {
+        this.currentReviewingProfileId = currentReviewingProfileId;
+    }
+
+    public String getCommandToConfirm() {
+        return commandToConfirm;
+    }
+
+    public void setCommandToConfirm(String commandToConfirm) {
+        this.commandToConfirm = commandToConfirm;
+    }
+
+
 }

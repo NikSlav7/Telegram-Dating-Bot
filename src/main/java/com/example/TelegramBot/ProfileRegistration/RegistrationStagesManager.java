@@ -1,4 +1,4 @@
-package com.example.TelegramBot.RegistrationStagesManager;
+package com.example.TelegramBot.ProfileRegistration;
 
 
 import com.example.TelegramBot.Domains.UserProfile;

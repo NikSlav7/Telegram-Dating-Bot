@@ -26,6 +26,9 @@ public class PreciseLocationManager {
 
 
 
+
+
+    @Async
     public void setLocationCityAndRegionName(Location location) throws IOException, URISyntaxException {
         HttpClient client = HttpClientBuilder.create().build();
         HttpGet getRequest = new HttpGet(new URI(getApiRequestLink(location.getLongitude(), location.getLatitude())));

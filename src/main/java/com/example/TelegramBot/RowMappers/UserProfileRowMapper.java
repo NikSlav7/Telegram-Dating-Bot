@@ -29,6 +29,7 @@ public class UserProfileRowMapper implements RowMapper<UserProfile> {
                 rs.getString("default_region_name"), rs.getString("default_city_name")));
         userProfile.setUserLatestLocation(new Location(rs.getDouble("latest_latitude"), rs.getDouble("latest_longitude"), rs.getString("latest_country_name"),
                 rs.getString("latest_region_name"), rs.getString("latest_city_name")));
+        userProfile.setCommandToConfirm(rs.getString("command_to_confirm"));
         return userProfile;
     }
 }

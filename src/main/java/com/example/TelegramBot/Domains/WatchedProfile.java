@@ -3,10 +3,8 @@ package com.example.TelegramBot.Domains;
 
 import com.example.TelegramBot.IDs.WatchedProfileId;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
 public class WatchedProfile{
@@ -16,10 +14,15 @@ public class WatchedProfile{
 
 
     //either has the account liked or not the profile
-    boolean liked;
+    boolean likedByOne;
 
-    //has the profile been shown to other user
-    boolean reviewedByReviewedProfile;
+    boolean likedByBoth;
+
+    //has the profile been shown to both users
+    boolean reviewedByBothProfiles;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    java.util.Date profileReviewTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     UserProfile askedUserProfile;
@@ -28,11 +31,14 @@ public class WatchedProfile{
     UserProfile reviewedUserProfile;
 
 
-    public WatchedProfile(WatchedProfileId watchedProfileId, boolean liked, boolean reviewedByReviewedProfile) {
-        super();
+    public WatchedProfile(WatchedProfileId watchedProfileId, boolean likedByOne, boolean likedByBoth, boolean reviewedByBothProfiles, Date profileReviewTime, UserProfile askedUserProfile, UserProfile reviewedUserProfile) {
         this.watchedProfileId = watchedProfileId;
-        this.liked = liked;
-        this.reviewedByReviewedProfile = reviewedByReviewedProfile;
+        this.likedByOne = likedByOne;
+        this.likedByBoth = likedByBoth;
+        this.reviewedByBothProfiles = reviewedByBothProfiles;
+        this.profileReviewTime = profileReviewTime;
+        this.askedUserProfile = askedUserProfile;
+        this.reviewedUserProfile = reviewedUserProfile;
     }
 
     public WatchedProfile() {
@@ -47,18 +53,60 @@ public class WatchedProfile{
     }
 
     public boolean isLiked() {
-        return liked;
+        return likedByOne;
     }
 
     public void setLiked(boolean liked) {
-        this.liked = liked;
+        this.likedByOne = liked;
     }
 
-    public boolean isReviewedByReviewedProfile() {
-        return reviewedByReviewedProfile;
+    public boolean isReviewedByBothProfiles() {
+        return reviewedByBothProfiles;
     }
 
-    public void setReviewedByReviewedProfile(boolean reviewedByReviewedProfile) {
-        this.reviewedByReviewedProfile = reviewedByReviewedProfile;
+    public void setReviewedByBothProfiles(boolean reviewedByBothProfiles) {
+        this.reviewedByBothProfiles = reviewedByBothProfiles;
+    }
+
+
+
+    public UserProfile getAskedUserProfile() {
+        return askedUserProfile;
+    }
+
+    public void setAskedUserProfile(UserProfile askedUserProfile) {
+        this.askedUserProfile = askedUserProfile;
+    }
+
+    public UserProfile getReviewedUserProfile() {
+        return reviewedUserProfile;
+    }
+
+    public void setReviewedUserProfile(UserProfile reviewedUserProfile) {
+        this.reviewedUserProfile = reviewedUserProfile;
+    }
+
+    public java.util.Date getProfileReviewTime() {
+        return profileReviewTime;
+    }
+
+    public void setProfileReviewTime(java.util.Date profileReviewTime) {
+        this.profileReviewTime = profileReviewTime;
+    }
+
+    public boolean isLikedByOne() {
+        return likedByOne;
+    }
+
+    public void setLikedByOne(boolean likedByOne) {
+        this.likedByOne = likedByOne;
+    }
+
+    public boolean isLikedByBoth() {
+        return likedByBoth;
+    }
+
+    public void setLikedByBoth(boolean likedByBoth) {
+        this.likedByBoth = likedByBoth;
     }
 }
