@@ -34,7 +34,7 @@ public class PreciseLocationManager {
         HttpGet getRequest = new HttpGet(new URI(getApiRequestLink(location.getLongitude(), location.getLatitude())));
         HttpResponse response = client.execute(getRequest);
 
-        JSONObject jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+        JSONObject jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()), "UTF-8");
 
         setCityAndRegionName(location, jsonObject);
 

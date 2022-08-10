@@ -14,6 +14,9 @@ public class ProfilesSeekingMarkupManager implements ReplyKeyboardMarkupManager 
 
     public static final String CURRENT = "Current";
     public static final String DEFAULT = "Default";
+
+    public static final String LIKED_BY = "Profiles that liked you";
+
     public static final String ACCEPT_PROFILE = "Like";
     public static final String DENY_PROFILE = "Don't like";
 
@@ -22,7 +25,8 @@ public class ProfilesSeekingMarkupManager implements ReplyKeyboardMarkupManager 
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
 
         KeyboardRow row = new KeyboardRow(getDefaultButtonsList());
-        replyKeyboardMarkup.setKeyboard(List.of(row));
+        KeyboardRow row2 = new KeyboardRow(getLikedByButton());
+        replyKeyboardMarkup.setKeyboard(List.of(row, row2));
         replyKeyboardMarkup.setResizeKeyboard(true);
         return replyKeyboardMarkup;
     }
@@ -51,6 +55,12 @@ public class ProfilesSeekingMarkupManager implements ReplyKeyboardMarkupManager 
         KeyboardButton deny = new KeyboardButton(DENY_PROFILE);
         return List.of(accept, deny);
     }
+
+    private static List<KeyboardButton> getLikedByButton() {
+        KeyboardButton likedBy = new KeyboardButton(LIKED_BY);
+        return List.of(likedBy);
+    }
+
 
 
 

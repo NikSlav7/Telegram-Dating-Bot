@@ -22,6 +22,8 @@ public class ErrorMessageSender {
 
     public static final String NO_APPROPRIATE_PROFILES_FOUND = "Unfortunately there is no good profiles for you, check the bot a little bit later";
 
+    public static final String REGISTRATION_IS_NOT_FINISHED = "You have to finish your registration before using this feature";
+
 
     public static SendMessage sendNewErrorMessage(Long chatId, String message) {
         SendMessage sendMessage = new SendMessage();

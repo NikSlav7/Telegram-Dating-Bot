@@ -1,12 +1,10 @@
 package com.example.TelegramBot.Domains;
 
 
-import org.springframework.stereotype.Component;
+import com.example.TelegramBot.Warnings.UserWarning;
 
 import javax.persistence.*;
-import java.sql.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Table
 @Entity
@@ -79,32 +77,41 @@ public class UserProfile{
     long currentReviewingProfileId;
 
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "warningFrom")
+    List<UserWarning> warningsIssued;
 
-    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Date dateOfBirth,  Location userDefaultLocation, Location userLatestLocation, String lastInvokedCommand, String commandToConfirm, UserProfileRegistrationStage profileRegistrationStage,
-                       long currentReviewingProfileId) {
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "warningTo")
+    List<UserWarning> warningsReceived;
+
+
+    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Set<WatchedProfile> askedProfiles, Set<WatchedProfile> reviewedBy, Location userDefaultLocation, Location userLatestLocation, String lastInvokedCommand, String commandToConfirm, UserProfileRegistrationStage profileRegistrationStage, ProfileSeekingMode profileSeekingMode, Date dateOfBirth, long currentReviewingProfileId, List<UserWarning> warningsIssued, List<UserWarning> warningsReceived) {
         this.id = id;
         this.firstName = firstName;
         this.secondName = secondName;
         this.hobbies = hobbies;
         this.additionalInfo = additionalInfo;
         this.profilePictureLink = profilePictureLink;
-        this.dateOfBirth = dateOfBirth;
+        this.askedProfiles = askedProfiles;
+        this.reviewedBy = reviewedBy;
         this.userDefaultLocation = userDefaultLocation;
         this.userLatestLocation = userLatestLocation;
         this.lastInvokedCommand = lastInvokedCommand;
         this.commandToConfirm = commandToConfirm;
         this.profileRegistrationStage = profileRegistrationStage;
+        this.profileSeekingMode = profileSeekingMode;
+        this.dateOfBirth = dateOfBirth;
         this.currentReviewingProfileId = currentReviewingProfileId;
-        profileSeekingMode = ProfileSeekingMode.NOT_SEEKING;
-
+        this.warningsIssued = warningsIssued;
+        this.warningsReceived = warningsReceived;
     }
-
 
     public UserProfile() {
         profileSeekingMode = ProfileSeekingMode.NOT_SEEKING;
         profileRegistrationStage = UserProfileRegistrationStage.NO_INFORMATION;
         askedProfiles = new HashSet<>();
         reviewedBy = new HashSet<>();
+        warningsIssued = new ArrayList<>();
+
     }
 
     public long getId() {
@@ -254,5 +261,19 @@ public class UserProfile{
         this.commandToConfirm = commandToConfirm;
     }
 
+    public List<UserWarning> getWarningsIssued() {
+        return warningsIssued;
+    }
 
+    public void setWarningsIssued(List<UserWarning> warningsIssued) {
+        this.warningsIssued = warningsIssued;
+    }
+
+    public List<UserWarning> getWarningsReceived() {
+        return warningsReceived;
+    }
+
+    public void setWarningsReceived(List<UserWarning> warningsReceived) {
+        this.warningsReceived = warningsReceived;
+    }
 }

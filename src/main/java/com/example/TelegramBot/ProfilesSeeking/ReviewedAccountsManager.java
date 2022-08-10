@@ -45,4 +45,13 @@ public class ReviewedAccountsManager {
         watchedProfilesRepository.save(watchedProfile);
         userProfileRepository.saveAll(List.of(searcher, reviewedProfile));
     }
+
+
+    public boolean updateReviewedAccount(UserProfile searcher, UserProfile reviewedProfile, boolean liked) {
+        WatchedProfile watchedProfile = watchedProfilesRepository.getWatchedProfileByWatchedProfileId(new WatchedProfileId(reviewedProfile.getId(), searcher.getId())).get();
+        watchedProfile.setLikedByBoth(watchedProfile.isLikedByOne() && liked);
+        watchedProfile.setReviewedByBothProfiles(true);
+        watchedProfilesRepository.save(watchedProfile);
+        return watchedProfile.isLikedByBoth();
+    }
 }

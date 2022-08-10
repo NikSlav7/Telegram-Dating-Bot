@@ -14,4 +14,13 @@ public class RegistrationStagesManager {
             if (stages[i].equals(registrationStage) && i != stages.length - 1) userProfile.setProfileRegistrationStage(stages[i+1]);
         }
     }
+
+    public static boolean hasNeededRegistrationStage(UserProfileRegistrationStage current, UserProfileRegistrationStage needed) {
+        UserProfileRegistrationStage[] stages = UserProfileRegistrationStage.values();
+        for (int i = 0;  i < stages.length; i++) {
+            if (stages[i] == current) return true;
+            else if (stages[i] == needed) return false;
+        }
+        return true;
+    }
 }

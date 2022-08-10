@@ -134,12 +134,17 @@ public class TelegramBot extends TelegramLongPollingBot {
                 return;
             }
 
+            //Checking if user is watching profiles that liked him/her
+            boolean secondReview = commandExecutor.getLastInvokedCommand().equals(TelegramBotCommands.WATCH_LIKED_BY);
+            boolean liked = false;
+
             switch (update.getMessage().getText()) {
                 case ProfilesSeekingMarkupManager.CURRENT -> {
                     commandExecutor.setLastInvokedCommand("/" + ProfilesSeekingMarkupManager.CURRENT);
                     userProfileRepository.save(commandExecutor);
                     try {
                         askForLatestLocation(chatId);
+                        return;
                     } catch (TelegramApiException e) {
                         throw new RuntimeException(e);
                     }
@@ -148,29 +153,45 @@ public class TelegramBot extends TelegramLongPollingBot {
                     commandExecutor.setProfileSeekingMode(ProfileSeekingMode.SEEKING_BY_DEFAULT_LOCATION);
                     try {
                         findProfile(chatId, commandExecutor);
+                        return;
                     } catch (IOException | TelegramApiException e) {
                         throw new RuntimeException(e);
                     }
-                    break;
+                }
+                case ProfilesSeekingMarkupManager.LIKED_BY -> {
+                    commandExecutor.setProfileSeekingMode(ProfileSeekingMode.WATCHING_LIKED_BY_PROFILES);
+                    try {
+                        findLikedByProfiles(commandExecutor, chatId);
+                        return;
+                    } catch (IOException | TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoProfilesFoundException e) {
+                        try {
+                            noProfilesFound(chatId);
+                        } catch (TelegramApiException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
                 }
                 case ProfilesSeekingMarkupManager.ACCEPT_PROFILE -> {
-                    reviewedAccountsManager.createReviewedAccount(commandExecutor, true);
                     try {
-                        findProfile(chatId, commandExecutor);
-                    } catch (IOException | TelegramApiException e) {
+                        if (getAppropriateProfileWrapper(commandExecutor, chatId, secondReview, true)) return;
+                    } catch (TelegramApiException e) {
                         throw new RuntimeException(e);
                     }
                 }
                 case ProfilesSeekingMarkupManager.DENY_PROFILE ->{
-                    reviewedAccountsManager.createReviewedAccount(commandExecutor, false);
                     try {
-                        findProfile(chatId, commandExecutor);
-                    } catch (IOException | TelegramApiException e) {
+                        if (getAppropriateProfileWrapper(commandExecutor, chatId, secondReview, false)) return;
+                    } catch (TelegramApiException e) {
                         throw new RuntimeException(e);
                     }
                 }
 
             }
+
+
+
         }
 
 
@@ -187,13 +208,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             if (message[0].equalsIgnoreCase(TelegramBotCommands.WATCH_LIKED_BY)) {
                 try {
-                    execute(ProfileInfoSender.sendProfileInfo(chatId, profilesFinder.findLikedByProfiles(commandExecutor), amazonPicturesManager.getProfilePicture(commandExecutor.getProfilePictureLink(), AmazonPicturesManager.AMAZON_PICTURES_BUCKET_NAME)));
+                   UserProfile userProfile =  findLikedByProfiles(commandExecutor, chatId);
                     return;
                 } catch (TelegramApiException | IOException e) {
                     throw new RuntimeException(e);
                 } catch (NoProfilesFoundException e) {
                     try {
-                        execute(ErrorMessageSender.sendNewErrorMessage(chatId, ErrorMessageSender.NO_APPROPRIATE_PROFILES_FOUND));
+                        noProfilesFound(chatId);
                     } catch (TelegramApiException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -390,16 +411,39 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     }
 
+    private boolean getAppropriateProfileWrapper(UserProfile commandExecutor, long chatId, boolean secondReview, boolean liked) throws TelegramApiException {
+        if (secondReview) {
+            reviewedAccountsManager.updateReviewedAccount(commandExecutor, userProfileRepository.getUserProfileById(commandExecutor.getCurrentReviewingProfileId()).get(), liked);
+            try {
+                findLikedByProfiles(commandExecutor, chatId);
+            } catch (TelegramApiException | IOException e) {
+                throw new RuntimeException(e);
+            }
+            catch (NoProfilesFoundException e) {
+                noProfilesFound(chatId);
+            }
+            return true;
+        }
+        else {
+            reviewedAccountsManager.createReviewedAccount(commandExecutor, liked);
+            try {
+                findProfile(chatId, commandExecutor);
+            } catch (IOException | TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+        return false;
+    }
 
 
-
-    private void findProfile(long chatId, UserProfile commandExecutor) throws IOException, TelegramApiException {
+    private UserProfile findProfile(long chatId, UserProfile commandExecutor) throws IOException, TelegramApiException {
         UserProfile appropriateProfile = null;
         try {
             appropriateProfile = profilesFinder.findAppropriateProfile(commandExecutor);
         } catch (Exception e) {
-            execute(ErrorMessageSender.sendNewErrorMessage(chatId, ErrorMessageSender.NO_APPROPRIATE_PROFILES_FOUND));
-            return;
+            noProfilesFound(chatId);
+            throw new RuntimeException();
         }
         commandExecutor.setCurrentReviewingProfileId(appropriateProfile.getId());
         java.io.File file = amazonPicturesManager.getProfilePicture(appropriateProfile.getProfilePictureLink(), amazonPicturesManager.AMAZON_PICTURES_BUCKET_NAME);
@@ -407,6 +451,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         sendPhoto.setReplyMarkup(ProfilesSeekingMarkupManager.getProfileOfferMarkup());
         execute(sendPhoto);
         userProfileRepository.save(commandExecutor);
+        return appropriateProfile;
     }
 
     public void startProfileSeekingMessage(long chatId) throws TelegramApiException {
@@ -452,6 +497,21 @@ public class TelegramBot extends TelegramLongPollingBot {
         userProfile.resetProfile();
         userProfile.setCommandToConfirm(null);
         userProfileRepository.save(userProfile);
+    }
+
+    private UserProfile findLikedByProfiles(UserProfile commandExecutor, long chatId) throws NoProfilesFoundException, IOException, TelegramApiException {
+        commandExecutor.setProfileSeekingMode(ProfileSeekingMode.WATCHING_LIKED_BY_PROFILES);
+        UserProfile appropriateProfile = profilesFinder.findLikedByProfiles(commandExecutor);
+        commandExecutor.setCurrentReviewingProfileId(appropriateProfile.getId());
+        userProfileRepository.save(commandExecutor);
+        execute(ProfileInfoSender.sendProfileInfo(chatId, appropriateProfile, amazonPicturesManager.getProfilePicture(commandExecutor.getProfilePictureLink(), AmazonPicturesManager.AMAZON_PICTURES_BUCKET_NAME)));
+        return appropriateProfile;
+    }
+
+    private void noProfilesFound(long chatId) throws TelegramApiException {
+        SendMessage sendMessage = ErrorMessageSender.sendNewErrorMessage(chatId,ErrorMessageSender.NO_APPROPRIATE_PROFILES_FOUND);
+        sendMessage.setReplyMarkup(ProfilesSeekingMarkupManager.getDefaultMarkup());
+        execute(sendMessage);
     }
 
 

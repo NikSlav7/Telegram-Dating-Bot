@@ -47,6 +47,7 @@ public class ProfilesFinder {
     public UserProfile findLikedByProfiles(UserProfile searcher) throws NoProfilesFoundException {
         List<UserProfile> profiles = userProfileJDBC.getLikedByProfiles(searcher);
         if (profiles.size() == 0) throw new NoProfilesFoundException("No appropriate profiles were found");
+        searcher.setCurrentReviewingProfileId(profiles.get(0).getId());
         return profiles.get(0);
     }
 

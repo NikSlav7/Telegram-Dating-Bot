@@ -13,6 +13,7 @@ import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.transaction.Transactional;
@@ -54,8 +55,9 @@ class TelegramBotApplicationTests {
 
 
 	@Test
+	@Commit
 	void  getLikedByProfilesTest() {
-		UserProfile userProfile = userProfileRepository.getUserProfileById(933602766).get();
+		UserProfile userProfile = userProfileRepository.getUserProfileById(1209815575).get();
 		UserProfile userProfile1 = userProfileRepository.getUserProfileById(575849854).get();
 		WatchedProfile watchedProfile = new WatchedProfile(new WatchedProfileId(userProfile1.getId(), userProfile.getId()), true, false, false, new Date(System.currentTimeMillis()), userProfile1, userProfile);
 		watchedProfilesRepository.save(watchedProfile);
