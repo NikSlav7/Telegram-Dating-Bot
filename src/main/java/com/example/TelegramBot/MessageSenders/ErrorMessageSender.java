@@ -24,6 +24,8 @@ public class ErrorMessageSender {
 
     public static final String REGISTRATION_IS_NOT_FINISHED = "You have to finish your registration before using this feature";
 
+    public static final String NO_SUCH_GENDER = "There is no such gender, please choose one of the variants";
+
 
     public static SendMessage sendNewErrorMessage(Long chatId, String message) {
         SendMessage sendMessage = new SendMessage();
@@ -31,4 +33,6 @@ public class ErrorMessageSender {
         sendMessage.setText(message);
         return sendMessage;
     }
+
+
 }

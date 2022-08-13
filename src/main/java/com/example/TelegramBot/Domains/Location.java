@@ -1,6 +1,7 @@
 package com.example.TelegramBot.Domains;
 
 
+import javax.annotation.Nullable;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
@@ -35,7 +36,7 @@ public class Location implements Serializable {
         return latitude;
     }
 
-    public void setLatitude(Double latitude) {
+    public void setLatitude(@Nullable Double latitude) {
         this.latitude = latitude;
     }
 
@@ -43,7 +44,7 @@ public class Location implements Serializable {
         return longitude;
     }
 
-    public void setLongitude(Double longitude) {
+    public void setLongitude(@Nullable Double longitude) {
         this.longitude = longitude;
     }
 
@@ -51,7 +52,7 @@ public class Location implements Serializable {
         return countryName;
     }
 
-    public void setCountryName(String countryName) {
+    public void setCountryName(@Nullable String countryName) {
         this.countryName = countryName;
     }
 
@@ -59,7 +60,7 @@ public class Location implements Serializable {
         return cityName;
     }
 
-    public void setCityName(String cityName) {
+    public void setCityName(@Nullable String cityName) {
         this.cityName = cityName;
     }
 
@@ -67,7 +68,7 @@ public class Location implements Serializable {
         return regionName;
     }
 
-    public void setRegionName(String regionName) {
+    public void setRegionName(@Nullable String regionName) {
         this.regionName = regionName;
     }
 }

@@ -1,8 +1,12 @@
 package com.example.TelegramBot.ReplyMarkupManager;
 
 
+import com.example.TelegramBot.Domains.Gender;
+import com.example.TelegramBot.Domains.UserProfileRegistrationStage;
 import com.example.TelegramBot.Interfaces.ReplyKeyboardMarkupManager;
+import com.example.TelegramBot.ProfileRegistration.ProfileRegistrationChecks;
 import org.aspectj.weaver.tools.cache.CacheBacking;
+import org.checkerframework.checker.units.qual.K;
 import org.jvnet.hk2.annotations.Service;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -11,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import javax.management.relation.Relation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +58,43 @@ public class ProfileCreationMarkupManager implements ReplyKeyboardMarkupManager 
         return markup;
 
 
+    }
+
+    public static ReplyKeyboardMarkup getDefaultGenderSelectionMarkup(){
+        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
+        KeyboardButton male = new KeyboardButton(Gender.MALE.getMessage());
+        KeyboardButton female = new KeyboardButton(Gender.FEMALE.getMessage());
+
+        KeyboardRow row = new KeyboardRow(List.of(male, female));
+
+        markup.setKeyboard(List.of(row));
+        markup.setResizeKeyboard(true);
+
+        return markup;
+    }
+
+    public static ReplyKeyboardMarkup getWideGenderSelectionMarkup(){
+        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
+        KeyboardButton male = new KeyboardButton(Gender.MALE.getMessage());
+        KeyboardButton female = new KeyboardButton(Gender.FEMALE.getMessage());
+        KeyboardButton third = new KeyboardButton(Gender.BOTH.getMessage());
+
+        KeyboardRow row = new KeyboardRow(List.of(male, female));
+        KeyboardRow row1 = new KeyboardRow(List.of(third));
+
+        markup.setKeyboard(List.of(row, row1));
+        markup.setResizeKeyboard(true);
+
+        return markup;
+    }
+    public static ReplyKeyboardMarkup determineRegistrationStageNeededMarkup(UserProfileRegistrationStage profileRegistrationStage){
+        if (profileRegistrationStage == UserProfileRegistrationStage.AGE_PROVIDED){
+            return getDefaultGenderSelectionMarkup();
+        }
+        if (profileRegistrationStage == UserProfileRegistrationStage.GENDER_PROVIDED) {
+            return getWideGenderSelectionMarkup();
+        }
+        return getDefaultMarkup();
     }
 
 }

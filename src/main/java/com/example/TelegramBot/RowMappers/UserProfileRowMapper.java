@@ -1,9 +1,6 @@
 package com.example.TelegramBot.RowMappers;
 
-import com.example.TelegramBot.Domains.Location;
-import com.example.TelegramBot.Domains.ProfileSeekingMode;
-import com.example.TelegramBot.Domains.UserProfile;
-import com.example.TelegramBot.Domains.UserProfileRegistrationStage;
+import com.example.TelegramBot.Domains.*;
 import net.dv8tion.jda.api.entities.User;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -30,6 +27,11 @@ public class UserProfileRowMapper implements RowMapper<UserProfile> {
         userProfile.setUserLatestLocation(new Location(rs.getDouble("latest_latitude"), rs.getDouble("latest_longitude"), rs.getString("latest_country_name"),
                 rs.getString("latest_region_name"), rs.getString("latest_city_name")));
         userProfile.setCommandToConfirm(rs.getString("command_to_confirm"));
+        userProfile.setBanned(rs.getBoolean("banned"));
+        userProfile.setPermanentlyBanned(rs.getBoolean("permanently_banned"));
+        userProfile.setBanUntil(rs.getDate("ban_until"));
+        userProfile.setProfileGender(Gender.values()[rs.getInt("profile_gender")]);
+        userProfile.setSeekingFor(Gender.values()[rs.getInt("seeking_for")]);
         return userProfile;
     }
 }

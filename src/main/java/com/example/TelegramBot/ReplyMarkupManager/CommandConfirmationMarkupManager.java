@@ -22,6 +22,7 @@ public class CommandConfirmationMarkupManager implements ReplyKeyboardMarkupMana
        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
         KeyboardRow confirmation = new KeyboardRow(getGetCommandConfirmationButtonsList());
         markup.setKeyboard(List.of(confirmation));
+        markup.setResizeKeyboard(true);
         return markup;
     }
 

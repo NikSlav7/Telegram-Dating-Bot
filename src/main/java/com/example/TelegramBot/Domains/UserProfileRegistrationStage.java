@@ -5,7 +5,11 @@ import java.awt.desktop.PreferencesEvent;
 public enum UserProfileRegistrationStage {
     NO_INFORMATION("Thank you for joining our bot, please fill some details about yourself in order to proceed"),
     NAME_PROVIDED("Your Full Name \n Please follow given format: Name Surname"),
-    AGE_PROVIDED("Your birthday? \n Please follow given format dd/mm/yyyy"),
+    AGE_PROVIDED("Your birthday? \n Please follow given format dd.mm.yyyy"),
+
+    GENDER_PROVIDED("Please provide your gender"),
+
+    SEEKING_FOR_GENDER_PROVIDED("Who are you seeking for?"),
     DEFAULT_LOCATION_PROVIDED("Superb! Please provide us your location through telegram"),
     PHOTO_PROVIDED("Great! It is time for profile photo \n Send your profile photo which will be shown to other users"),
     HOBBIES_PROVIDED("Only few steps left! Please provide your hobbies!"),

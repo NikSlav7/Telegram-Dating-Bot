@@ -1,6 +1,7 @@
 package com.example.TelegramBot.Domains;
 
 
+import com.amazonaws.services.dynamodbv2.xspec.S;
 import com.example.TelegramBot.Warnings.UserWarning;
 
 import javax.persistence.*;
@@ -11,28 +12,46 @@ import java.util.*;
 public class UserProfile{
 
     @Id
-    long id;
+    private long id;
 
-    String firstName;
+    private String firstName;
 
-    String secondName;
+    private String secondName;
 
-    String hobbies;
+    private  String hobbies;
+
+    private Gender profileGender;
+
+    private Gender seekingFor;
+
+
+    private boolean banned;
+
+
+
+    private boolean permanentlyBanned;
+
+
+    private int timesBanned;
+
 
     @Column(columnDefinition = "TEXT")
-    String additionalInfo;
+    private String additionalInfo;
 
-    String profilePictureLink;
+    private String profilePictureLink;
 
 
+    private String phoneNumber;
 
     //profiles that were offered to user
     @OneToMany(mappedBy = "askedUserProfile")
-    Set<WatchedProfile> askedProfiles;
+    private Set<WatchedProfile> askedProfiles;
 
     //profiles that this profile was offered to
     @OneToMany(mappedBy = "reviewedUserProfile")
-    Set<WatchedProfile> reviewedBy;
+    private Set<WatchedProfile> reviewedBy;
+
+
 
 
 
@@ -45,7 +64,7 @@ public class UserProfile{
 
     })
     @Embedded
-    Location userDefaultLocation;
+    private Location userDefaultLocation;
 
 
     @AttributeOverrides({
@@ -56,9 +75,9 @@ public class UserProfile{
             @AttributeOverride(name = "cityName", column = @Column(name = "latest_city_name")),
     })
     @Embedded
-    Location userLatestLocation;
+    private Location userLatestLocation;
 
-    String lastInvokedCommand;
+    private String lastInvokedCommand;
 
     String commandToConfirm;
 
@@ -69,28 +88,43 @@ public class UserProfile{
 
     @Enumerated(value = EnumType.ORDINAL)
     @Column(nullable = false)
-    ProfileSeekingMode profileSeekingMode;
+    private ProfileSeekingMode profileSeekingMode;
 
 
-    java.util.Date dateOfBirth;
+    private java.util.Date dateOfBirth;
 
-    long currentReviewingProfileId;
+    private java.util.Date banUntil;
+
+
+    private long currentReviewingProfileId;
 
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "warningFrom")
-    List<UserWarning> warningsIssued;
+    private List<UserWarning> warningsIssued;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "warningTo")
-    List<UserWarning> warningsReceived;
+    private List<UserWarning> warningsReceived;
 
 
-    public UserProfile(long id, String firstName, String secondName, String hobbies, String additionalInfo, String profilePictureLink, Set<WatchedProfile> askedProfiles, Set<WatchedProfile> reviewedBy, Location userDefaultLocation, Location userLatestLocation, String lastInvokedCommand, String commandToConfirm, UserProfileRegistrationStage profileRegistrationStage, ProfileSeekingMode profileSeekingMode, Date dateOfBirth, long currentReviewingProfileId, List<UserWarning> warningsIssued, List<UserWarning> warningsReceived) {
+    public UserProfile(long id, String firstName, String secondName, String hobbies, Gender profileGender, Gender seekingFor, boolean banned, boolean permanentlyBanned,
+                       int timesBanned, String additionalInfo, String profilePictureLink, String phoneNumber,
+                       Set<WatchedProfile> askedProfiles, Set<WatchedProfile> reviewedBy,
+                       Location userDefaultLocation, Location userLatestLocation,
+                       String lastInvokedCommand, String commandToConfirm,
+                       UserProfileRegistrationStage profileRegistrationStage,
+                       ProfileSeekingMode profileSeekingMode, Date dateOfBirth,
+                       Date banUntil, long currentReviewingProfileId, List<UserWarning> warningsIssued,
+                       List<UserWarning> warningsReceived) {
         this.id = id;
         this.firstName = firstName;
         this.secondName = secondName;
         this.hobbies = hobbies;
+        this.banned = banned;
+        this.permanentlyBanned = permanentlyBanned;
+        this.timesBanned = timesBanned;
         this.additionalInfo = additionalInfo;
         this.profilePictureLink = profilePictureLink;
+        this.phoneNumber = phoneNumber;
         this.askedProfiles = askedProfiles;
         this.reviewedBy = reviewedBy;
         this.userDefaultLocation = userDefaultLocation;
@@ -100,9 +134,12 @@ public class UserProfile{
         this.profileRegistrationStage = profileRegistrationStage;
         this.profileSeekingMode = profileSeekingMode;
         this.dateOfBirth = dateOfBirth;
+        this.banUntil = banUntil;
         this.currentReviewingProfileId = currentReviewingProfileId;
         this.warningsIssued = warningsIssued;
         this.warningsReceived = warningsReceived;
+        this.profileGender = profileGender;
+        this.seekingFor  = seekingFor;
     }
 
     public UserProfile() {
@@ -213,6 +250,8 @@ public class UserProfile{
         userLatestLocation = null;
         profileRegistrationStage = UserProfileRegistrationStage.NO_INFORMATION;
         dateOfBirth = null;
+        profileGender = null;
+        seekingFor = null;
     }
 
     public Set<WatchedProfile> getAskedProfiles() {
@@ -275,5 +314,65 @@ public class UserProfile{
 
     public void setWarningsReceived(List<UserWarning> warningsReceived) {
         this.warningsReceived = warningsReceived;
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
+    }
+
+    public boolean isPermanentlyBanned() {
+        return permanentlyBanned;
+    }
+
+    public void setPermanentlyBanned(boolean permanentlyBanned) {
+        this.permanentlyBanned = permanentlyBanned;
+    }
+
+    public int getTimesBanned() {
+        return timesBanned;
+    }
+
+    public void setTimesBanned(int timesBanned) {
+        this.timesBanned = timesBanned;
+    }
+
+    public Date getBanUntil() {
+        return banUntil;
+    }
+
+    public void setBanUntil(Date banUntil) {
+        this.banUntil = banUntil;
+    }
+
+    public void increaseBans() {
+        timesBanned++;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String profileLink) {
+        this.phoneNumber = profileLink;
+    }
+
+    public Gender getProfileGender() {
+        return profileGender;
+    }
+
+    public void setProfileGender(Gender profileGender) {
+        this.profileGender = profileGender;
+    }
+
+    public Gender getSeekingFor() {
+        return seekingFor;
+    }
+
+    public void setSeekingFor(Gender seekingFor) {
+        this.seekingFor = seekingFor;
     }
 }

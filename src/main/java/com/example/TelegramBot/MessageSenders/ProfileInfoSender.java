@@ -38,6 +38,7 @@ public class ProfileInfoSender {
         StringBuilder messageBuilder = new StringBuilder();
         messageBuilder
                 .append("\n" + userProfile.getFirstName() + " " + userProfile.getSecondName())
+                .append("\n" + userProfile.getProfileGender().getMessage())
                 .append("\n" + Period.between(LocalDate.ofInstant(Instant.ofEpochMilli(userProfile.getDateOfBirth().getTime()), ZoneId.systemDefault()), LocalDate.now()).getYears() + " y.o")
                 .append("\n\n" + getLocation(userProfile.getUserDefaultLocation()))
                 .append("\n\n" + "Hobbies: \n" + userProfile.getHobbies())

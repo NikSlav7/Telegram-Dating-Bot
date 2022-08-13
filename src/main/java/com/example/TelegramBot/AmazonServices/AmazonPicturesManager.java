@@ -45,7 +45,9 @@ public class AmazonPicturesManager {
         FileUtils.copyInputStreamToFile(inputStream, file);
         return file;
     }
-    
+
+
+    @Async
     public void deleteProfilePicture(String fileName, String bucketName) {
         amazonS3.deleteObject(bucketName, fileName);
     }

@@ -20,6 +20,10 @@ public class ProfilesSeekingMarkupManager implements ReplyKeyboardMarkupManager 
     public static final String ACCEPT_PROFILE = "Like";
     public static final String DENY_PROFILE = "Don't like";
 
+    public static final String REPORT_PROFILE = "Report Profile";
+
+
+
 
     public static ReplyKeyboardMarkup getDefaultMarkup() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
@@ -38,7 +42,8 @@ public class ProfilesSeekingMarkupManager implements ReplyKeyboardMarkupManager 
         KeyboardRow accept = new KeyboardRow(List.of(getProfileOfferButtonsList().get(0)));
         KeyboardRow deny = new KeyboardRow(List.of(getProfileOfferButtonsList().get(1)));
         KeyboardRow modeChoose = new KeyboardRow(getDefaultButtonsList());
-        replyKeyboardMarkup.setKeyboard(List.of(accept, deny, modeChoose));
+        KeyboardRow report = new KeyboardRow(getReportKeyboardButton());
+        replyKeyboardMarkup.setKeyboard(List.of(accept, deny, modeChoose, report));
         replyKeyboardMarkup.setResizeKeyboard(true);
         return replyKeyboardMarkup;
     }
@@ -60,6 +65,15 @@ public class ProfilesSeekingMarkupManager implements ReplyKeyboardMarkupManager 
         KeyboardButton likedBy = new KeyboardButton(LIKED_BY);
         return List.of(likedBy);
     }
+
+    private static List<KeyboardButton> getReportKeyboardButton() {
+        KeyboardButton report = new KeyboardButton(REPORT_PROFILE);
+        return List.of(report);
+
+    }
+
+
+
 
 
 
