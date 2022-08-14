@@ -18,6 +18,8 @@ public class ErrorMessageSender {
 
     public static final String NUMBERS_IN_LOCATION_NAME = "Your location should contain only LETTERS!";
 
+
+
     public static final String PHOTO_NOT_PROVIDED = "Please provide profile Photo. No text needed";
 
     public static final String NO_APPROPRIATE_PROFILES_FOUND = "Unfortunately there is no good profiles for you, check the bot a little bit later";

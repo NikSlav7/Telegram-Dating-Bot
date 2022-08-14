@@ -9,7 +9,7 @@ import java.util.*;
 
 @Table
 @Entity
-public class UserProfile{
+public class UserProfile extends Profile{
 
     @Id
     private long id;
@@ -23,16 +23,6 @@ public class UserProfile{
     private Gender profileGender;
 
     private Gender seekingFor;
-
-
-    private boolean banned;
-
-
-
-    private boolean permanentlyBanned;
-
-
-    private int timesBanned;
 
 
     @Column(columnDefinition = "TEXT")
@@ -79,7 +69,7 @@ public class UserProfile{
 
     private String lastInvokedCommand;
 
-    String commandToConfirm;
+    private String commandToConfirm;
 
     @Enumerated(value = EnumType.ORDINAL)
     @Column(nullable = false)
@@ -93,8 +83,6 @@ public class UserProfile{
 
     private java.util.Date dateOfBirth;
 
-    private java.util.Date banUntil;
-
 
     private long currentReviewingProfileId;
 
@@ -106,22 +94,25 @@ public class UserProfile{
     private List<UserWarning> warningsReceived;
 
 
-    public UserProfile(long id, String firstName, String secondName, String hobbies, Gender profileGender, Gender seekingFor, boolean banned, boolean permanentlyBanned,
-                       int timesBanned, String additionalInfo, String profilePictureLink, String phoneNumber,
+
+    @OneToOne(mappedBy = "userProfile", cascade = CascadeType.ALL)
+    private RootProfile rootProfile;
+
+
+    public UserProfile(long id, String firstName, String secondName, String hobbies, Gender profileGender, Gender seekingFor,
+                       String additionalInfo, String profilePictureLink, String phoneNumber,
                        Set<WatchedProfile> askedProfiles, Set<WatchedProfile> reviewedBy,
                        Location userDefaultLocation, Location userLatestLocation,
                        String lastInvokedCommand, String commandToConfirm,
                        UserProfileRegistrationStage profileRegistrationStage,
                        ProfileSeekingMode profileSeekingMode, Date dateOfBirth,
-                       Date banUntil, long currentReviewingProfileId, List<UserWarning> warningsIssued,
+                       long currentReviewingProfileId, List<UserWarning> warningsIssued,
                        List<UserWarning> warningsReceived) {
+        super(id);
         this.id = id;
         this.firstName = firstName;
         this.secondName = secondName;
         this.hobbies = hobbies;
-        this.banned = banned;
-        this.permanentlyBanned = permanentlyBanned;
-        this.timesBanned = timesBanned;
         this.additionalInfo = additionalInfo;
         this.profilePictureLink = profilePictureLink;
         this.phoneNumber = phoneNumber;
@@ -134,7 +125,6 @@ public class UserProfile{
         this.profileRegistrationStage = profileRegistrationStage;
         this.profileSeekingMode = profileSeekingMode;
         this.dateOfBirth = dateOfBirth;
-        this.banUntil = banUntil;
         this.currentReviewingProfileId = currentReviewingProfileId;
         this.warningsIssued = warningsIssued;
         this.warningsReceived = warningsReceived;
@@ -316,41 +306,7 @@ public class UserProfile{
         this.warningsReceived = warningsReceived;
     }
 
-    public boolean isBanned() {
-        return banned;
-    }
 
-    public void setBanned(boolean banned) {
-        this.banned = banned;
-    }
-
-    public boolean isPermanentlyBanned() {
-        return permanentlyBanned;
-    }
-
-    public void setPermanentlyBanned(boolean permanentlyBanned) {
-        this.permanentlyBanned = permanentlyBanned;
-    }
-
-    public int getTimesBanned() {
-        return timesBanned;
-    }
-
-    public void setTimesBanned(int timesBanned) {
-        this.timesBanned = timesBanned;
-    }
-
-    public Date getBanUntil() {
-        return banUntil;
-    }
-
-    public void setBanUntil(Date banUntil) {
-        this.banUntil = banUntil;
-    }
-
-    public void increaseBans() {
-        timesBanned++;
-    }
 
     public String getPhoneNumber() {
         return phoneNumber;
@@ -374,5 +330,13 @@ public class UserProfile{
 
     public void setSeekingFor(Gender seekingFor) {
         this.seekingFor = seekingFor;
+    }
+
+    public RootProfile getRootProfile() {
+        return rootProfile;
+    }
+
+    public void setRootProfile(RootProfile rootProfile) {
+        this.rootProfile = rootProfile;
     }
 }

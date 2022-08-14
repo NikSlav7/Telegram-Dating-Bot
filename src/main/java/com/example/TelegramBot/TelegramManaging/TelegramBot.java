@@ -3,10 +3,9 @@ package com.example.TelegramBot.TelegramManaging;
 import com.example.TelegramBot.AmazonServices.AmazonPicturesManager;
 import com.example.TelegramBot.CustomExceptions.NoProfilesFoundException;
 import com.example.TelegramBot.CustomExceptions.NonExistingGenderException;
-import com.example.TelegramBot.Domains.Location;
-import com.example.TelegramBot.Domains.ProfileSeekingMode;
-import com.example.TelegramBot.Domains.UserProfile;
-import com.example.TelegramBot.Domains.UserProfileRegistrationStage;
+import com.example.TelegramBot.Domains.*;
+import com.example.TelegramBot.JDBC.BannedProfileJDBC;
+import com.example.TelegramBot.JDBC.RootProfileJDBC;
 import com.example.TelegramBot.JDBC.UserProfileJDBC;
 import com.example.TelegramBot.LocationServices.PreciseLocationManager;
 import com.example.TelegramBot.MessageSenders.CommandConfirmationMessageSender;
@@ -20,18 +19,18 @@ import com.example.TelegramBot.ProfileRegistration.RegistrationStagesManager;
 import com.example.TelegramBot.ReplyMarkupManager.CommandConfirmationMarkupManager;
 import com.example.TelegramBot.ReplyMarkupManager.ProfileCreationMarkupManager;
 import com.example.TelegramBot.ReplyMarkupManager.ProfilesSeekingMarkupManager;
+import com.example.TelegramBot.Repositories.BannedProfileRepository;
+import com.example.TelegramBot.Repositories.RootProfileRepository;
 import com.example.TelegramBot.Repositories.UserProfileRepository;
+import com.example.TelegramBot.Warnings.BannedProfile;
 import com.example.TelegramBot.Warnings.WarningsManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendContact;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -41,11 +40,11 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+
+import static com.example.TelegramBot.TelegramManaging.TelegramBotCommands.REPORT_PROFILE;
+import static com.example.TelegramBot.TelegramManaging.TelegramBotCommands.RESTART_PROFILE_CREATION;
 
 
 @Component
@@ -53,6 +52,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 
     private final UserProfileRepository userProfileRepository;
+
+    private final BannedProfileRepository bannedProfileRepository;
+
+    private final RootProfileRepository rootProfileRepository;
 
     private final UserProfileJDBC userProfileJDBC;
 
@@ -70,9 +73,17 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final Clock clock;
 
+    private final RootProfileJDBC rootProfileJDBC;
+
+    private final BannedProfileJDBC bannedProfileJDBC;
+
+
+
     @Autowired
-    public TelegramBot(UserProfileRepository userProfileRepository, UserProfileJDBC userProfileJDBC, AmazonPicturesManager amazonPicturesManager, PreciseLocationManager preciseLocationManager, ProfilesFinder profilesFinder, ReviewedAccountsManager reviewedAccountsManager, WarningsManager warningsManager, Clock clock) {
+    public TelegramBot(UserProfileRepository userProfileRepository, BannedProfileRepository bannedProfileRepository, RootProfileRepository rootProfileRepository, UserProfileJDBC userProfileJDBC, AmazonPicturesManager amazonPicturesManager, PreciseLocationManager preciseLocationManager, ProfilesFinder profilesFinder, ReviewedAccountsManager reviewedAccountsManager, WarningsManager warningsManager, Clock clock, RootProfileJDBC rootProfileJDBC, BannedProfileJDBC bannedProfileJDBC) {
         this.userProfileRepository = userProfileRepository;
+        this.bannedProfileRepository = bannedProfileRepository;
+        this.rootProfileRepository = rootProfileRepository;
         this.userProfileJDBC = userProfileJDBC;
         this.amazonPicturesManager = amazonPicturesManager;
         this.preciseLocationManager = preciseLocationManager;
@@ -80,6 +91,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.reviewedAccountsManager = reviewedAccountsManager;
         this.warningsManager = warningsManager;
         this.clock = clock;
+        this.rootProfileJDBC = rootProfileJDBC;
+        this.bannedProfileJDBC = bannedProfileJDBC;
         telegramFileDownloadService = new TelegramFileDownloadService(this);
 
     }
@@ -105,29 +118,41 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         //Creating the empty user profile for new user
         if (!userProfileJDBC.checkIfUserProfileExists(update.getMessage().getFrom())) {
-            userProfileJDBC.createNewUserProfile(update.getMessage().getFrom());
+            createAllProfiles(update.getMessage().getFrom().getId());
         }
 
         //Getting the new user
         UserProfile commandExecutor = userProfileRepository.getUserProfileById(update.getMessage().getChatId()).get();
-        java.util.Date banUntil;
-        if ((banUntil = userProfileJDBC.getUserBannedUntilDate(commandExecutor)) == null) {
-
-        }
-
-        //That's temporary line of code
-
+        RootProfile commandExecutorRootProfile = commandExecutor.getRootProfile();
 
         //The new command executor id and the chat id. They are now the same, seperated for the code clearance
         long commandExecutorId = commandExecutor.getId();
         long chatId = update.getMessage().getChatId();
 
 
+        java.util.Date banUntil;
+        //Checking if user is banned
+        if (commandExecutorRootProfile.getBannedProfile().isBanned()) {
+            String banMessage = commandExecutorRootProfile.getBannedProfile().isPermanentlyBanned() ?
+                    "You are banned forever" :
+                    "You are banned until " + commandExecutorRootProfile.getBannedProfile().getBannedUntil().toString();
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(chatId);
+            sendMessage.setText(banMessage);
+            try {
+                execute(sendMessage);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
         //Checking if there is any command that user has now to confirm;
        if (commandExecutor.getCommandToConfirm() != null && update.getMessage().getText() != null) {
             boolean confirm = update.getMessage().getText().equals(CommandConfirmationMarkupManager.COMMAND_CONFIRM);
             try {
                 performConfirmedCommand(chatId, commandExecutor, confirm);
+                return;
             } catch (TelegramApiException e) {
                 throw new RuntimeException();
             } catch (NoProfilesFoundException | IOException e) {
@@ -139,8 +164,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (commandExecutor.getProfileRegistrationStage() == UserProfileRegistrationStage.ADDITIONAL_INFO_PROVIDED) {
 
             //Checking if user is sending his latest location
-            if (update.getMessage().getLocation() != null) {
+            if (update.getMessage().getLocation() != null && commandExecutor.getLastInvokedCommand().equalsIgnoreCase("/" + ProfilesSeekingMarkupManager.CURRENT)) {
                 commandExecutor.setUserLatestLocation(update.getMessage().getLocation());
+                commandExecutor.setLastInvokedCommand(TelegramBotCommands.SEEK_FOR_PROFILES);
                 userProfileRepository.save(commandExecutor);
                 try {
                     //Offering new profile
@@ -168,6 +194,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
                 case ProfilesSeekingMarkupManager.DEFAULT -> {
                     commandExecutor.setProfileSeekingMode(ProfileSeekingMode.SEEKING_BY_DEFAULT_LOCATION);
+                    commandExecutor.setLastInvokedCommand(TelegramBotCommands.SEEK_FOR_PROFILES);
+                    userProfileRepository.save(commandExecutor);
                     try {
                         findProfile(chatId, commandExecutor);
                         return;
@@ -177,6 +205,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
                 case ProfilesSeekingMarkupManager.LIKED_BY -> {
                     commandExecutor.setProfileSeekingMode(ProfileSeekingMode.WATCHING_LIKED_BY_PROFILES);
+                    commandExecutor.setLastInvokedCommand(TelegramBotCommands.SEEK_FOR_PROFILES);
+                    userProfileRepository.save(commandExecutor);
                     try {
                         findLikedByProfiles(commandExecutor, chatId);
                         return;
@@ -191,6 +221,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                 }
                 case ProfilesSeekingMarkupManager.ACCEPT_PROFILE -> {
+
                     try {
                         if (getAppropriateProfileWrapper(commandExecutor, chatId, secondReview, true)) return;
                     } catch (TelegramApiException e) {
@@ -206,7 +237,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
                 case ProfilesSeekingMarkupManager.REPORT_PROFILE -> {
                     try {
-                        commandExecutor.setCommandToConfirm(TelegramBotCommands.REPORT_PROFILE);
+                        commandExecutor.setCommandToConfirm(REPORT_PROFILE);
                         userProfileRepository.save(commandExecutor);
                         askConfirmCommand(chatId);
                     } catch (TelegramApiException e) {
@@ -214,10 +245,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                 }
 
-
             }
-
-
 
         }
 
@@ -250,8 +278,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
 
-            if (message[0].equalsIgnoreCase(TelegramBotCommands.RESTART_PROFILE_CREATION)) {
-                commandExecutor.setCommandToConfirm(TelegramBotCommands.RESTART_PROFILE_CREATION);
+            if (message[0].equalsIgnoreCase(RESTART_PROFILE_CREATION)) {
+                commandExecutor.setCommandToConfirm(RESTART_PROFILE_CREATION);
                 userProfileRepository.save(commandExecutor);
                 try {
                     askConfirmCommand(chatId);
@@ -260,8 +288,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     throw new RuntimeException(e);
                 }
             }
+
             //Profile Creation
-            if (message[0].equalsIgnoreCase(TelegramBotCommands.RESTART_PROFILE_CREATION) || (message[0].equalsIgnoreCase(TelegramBotCommands.START))) {
+            if (message[0].equalsIgnoreCase(RESTART_PROFILE_CREATION) || (message[0].equalsIgnoreCase(TelegramBotCommands.START))) {
                 if (commandExecutor.getProfileRegistrationStage() == UserProfileRegistrationStage.ADDITIONAL_INFO_PROVIDED) return;
                 SendMessage welcomeMessage = RegistrationMessageSender.sendUserRegistrationMessage(chatId, UserProfileRegistrationStage.NO_INFORMATION.getMessage(), false);
                 SendMessage nameAskingMessage = RegistrationMessageSender.sendNextStepRegistrationMessage(chatId, commandExecutor.getProfileRegistrationStage(), ProfileCreationMarkupManager.getDefaultMarkup());
@@ -278,13 +307,12 @@ public class TelegramBot extends TelegramLongPollingBot {
             //getting users lastly invoked command.
             String lastlyInvokedCommand = commandExecutor.getLastInvokedCommand();
 
-
             //If user creates profile
-            if (lastlyInvokedCommand != null && lastlyInvokedCommand.equalsIgnoreCase(TelegramBotCommands.RESTART_PROFILE_CREATION) || lastlyInvokedCommand.equalsIgnoreCase(TelegramBotCommands.START) ) {
+            if (lastlyInvokedCommand != null && lastlyInvokedCommand.equalsIgnoreCase(RESTART_PROFILE_CREATION) || lastlyInvokedCommand.equalsIgnoreCase(TelegramBotCommands.START) ) {
                 //Check if user wants to restart the registration
                 if (update.getMessage().getText() != null && update.getMessage().getText().equalsIgnoreCase(ProfileCreationMarkupManager.RESTART_REGISTRATION)) {
                     try {
-                        commandExecutor.setCommandToConfirm(TelegramBotCommands.RESTART_PROFILE_CREATION);
+                        commandExecutor.setCommandToConfirm(RESTART_PROFILE_CREATION);
                         userProfileRepository.save(commandExecutor);
                         askConfirmCommand(chatId);
                     } catch (TelegramApiException e) {
@@ -421,7 +449,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         commandExecutor.setAdditionalInfo(update.getMessage().getText());
                         try {
                             java.io.File profilePic = amazonPicturesManager.getProfilePicture(commandExecutor.getProfilePictureLink(), amazonPicturesManager.AMAZON_PICTURES_BUCKET_NAME);
-                            execute(ProfileInfoSender.sendProfileInfo(chatId, commandExecutor, profilePic));
+                            execute(ProfileInfoSender.sendProfileInfo(chatId, commandExecutor, profilePic));;
                             //removing unnecessary file
                             profilePic.delete();
                         } catch (TelegramApiException | IOException e) {
@@ -525,33 +553,50 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     public void performConfirmedCommand(long chatId, UserProfile userProfile, boolean confirmed) throws TelegramApiException, NoProfilesFoundException, IOException {
         String command = userProfile.getCommandToConfirm();
+        //If user cancels
         if (!confirmed){
-            userProfile.setCommandToConfirm(null);
-            userProfile.setLastInvokedCommand(TelegramBotCommands.START);
-            if (userProfile.getProfileSeekingMode() == ProfileSeekingMode.WATCHING_LIKED_BY_PROFILES) {
-                findLikedByProfiles(userProfile, chatId);
-            }
-            else {
-                findProfile(chatId, userProfile);
+            switch (command) {
+                case RESTART_PROFILE_CREATION -> {
+                    if (userProfile.getProfileRegistrationStage().ordinal() >= UserProfileRegistrationStage.ADDITIONAL_INFO_PROVIDED.ordinal()) {
+                        startProfileSeekingMessage(chatId);
+                    }
+                    else {
+                        execute(RegistrationMessageSender.sendNextStepRegistrationMessage(chatId, userProfile.getProfileRegistrationStage(),
+                                ProfileCreationMarkupManager.determineRegistrationStageNeededMarkup(userProfile.getProfileRegistrationStage())));
+                    }
+                }
+
+                case REPORT_PROFILE -> {
+                    if (userProfile.getProfileSeekingMode() == ProfileSeekingMode.WATCHING_LIKED_BY_PROFILES) findLikedByProfiles(userProfile, chatId);
+                    else findProfile(chatId, userProfile);
+
+                }
             }
         }
 
+        //If user accepts
         else {
             switch (command) {
-                case TelegramBotCommands.RESTART_PROFILE_CREATION -> {
+                case RESTART_PROFILE_CREATION -> {
                     fullResetUser(userProfile);
+                    userProfile.setLastInvokedCommand(RESTART_PROFILE_CREATION);
                     execute(RegistrationMessageSender.sendUserRegistrationMessage(chatId, UserProfileRegistrationStage.NAME_PROVIDED.getMessage(), true));
                 }
-                case TelegramBotCommands.REPORT_PROFILE -> {
-                    warningsManager.createNewWarning(userProfile, userProfileRepository.getUserProfileById(userProfile.getCurrentReviewingProfileId()).get());
+                case REPORT_PROFILE -> {
+                    reportProfile(userProfile);
+                    if (userProfile.getProfileSeekingMode() == ProfileSeekingMode.WATCHING_LIKED_BY_PROFILES) findLikedByProfiles(userProfile, chatId);
+                    else findProfile(chatId, userProfile);
                 }
+
             }
         }
+        userProfile.setCommandToConfirm(null);
         userProfileRepository.save(userProfile);
     }
 
 
 
+    //Re
     private void fullResetUser(UserProfile userProfile){
         if (userProfile.getProfilePictureLink() != null) amazonPicturesManager.deleteProfilePicture(userProfile.getProfilePictureLink(), amazonPicturesManager.AMAZON_PICTURES_BUCKET_NAME);
         userProfile.resetProfile();
@@ -576,13 +621,30 @@ public class TelegramBot extends TelegramLongPollingBot {
         execute(sendMessage);
     }
 
+    private void createAllProfiles(long id) {
+        RootProfile rootProfile = rootProfileJDBC.createNewRootProfile(id);
+        UserProfile userProfile = userProfileJDBC.createNewUserProfile(id);
+        BannedProfile bannedProfile = bannedProfileJDBC.createNewBannedProfile(id);
+
+        rootProfile.setUserProfile(userProfile);
+        rootProfile.setBannedProfile(bannedProfile);
+
+        userProfile.setRootProfile(rootProfile);
+        bannedProfile.setRootProfile(rootProfile);
+
+        userProfileRepository.save(userProfile);
+        bannedProfileRepository.save(bannedProfile);
+        rootProfileRepository.save(rootProfile);
 
 
-
-
-
-
-
-
-
+    }
+    public void reportProfile(UserProfile userProfile) throws TelegramApiException, IOException, NoProfilesFoundException {
+        warningsManager.createNewWarning(userProfile, userProfileRepository.getUserProfileById(userProfile.getCurrentReviewingProfileId()).get());
+        if (!userProfile.getLastInvokedCommand().equals(TelegramBotCommands.WATCH_LIKED_BY)) {
+            reviewedAccountsManager.createReviewedAccount(userProfile, false);
+        }
+        else {
+            reviewedAccountsManager.updateReviewedAccount(userProfile, userProfileRepository.getUserProfileById(userProfile.getCurrentReviewingProfileId()).get(), false);
+        }
+    }
 }

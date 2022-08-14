@@ -2,7 +2,7 @@ package com.example.TelegramBot.Warnings;
 
 
 import com.example.TelegramBot.Domains.UserProfile;
-import com.example.TelegramBot.Repositories.UserWarningsRepo;
+import com.example.TelegramBot.Repositories.UserWarningsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +13,12 @@ import java.util.UUID;
 public class WarningsManager {
 
 
-    private final UserWarningsRepo userWarningsRepo;
+    private final UserWarningsRepository userWarningsRepository;
 
 
     @Autowired
-    public WarningsManager(UserWarningsRepo userWarningsRepo) {
-        this.userWarningsRepo = userWarningsRepo;
+    public WarningsManager(UserWarningsRepository userWarningsRepository) {
+        this.userWarningsRepository = userWarningsRepository;
     }
 
     public UserWarning createNewWarning(UserProfile issuedBy, UserProfile issuedTo) {
@@ -27,6 +27,7 @@ public class WarningsManager {
         userWarning.setCreationDate(new Date(System.currentTimeMillis()));
         userWarning.setWarningTo(issuedTo);
         userWarning.setWarningFrom(issuedBy);
+        userWarningsRepository.save(userWarning);
         return userWarning;
     }
 }

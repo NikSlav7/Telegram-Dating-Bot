@@ -27,9 +27,6 @@ public class UserProfileRowMapper implements RowMapper<UserProfile> {
         userProfile.setUserLatestLocation(new Location(rs.getDouble("latest_latitude"), rs.getDouble("latest_longitude"), rs.getString("latest_country_name"),
                 rs.getString("latest_region_name"), rs.getString("latest_city_name")));
         userProfile.setCommandToConfirm(rs.getString("command_to_confirm"));
-        userProfile.setBanned(rs.getBoolean("banned"));
-        userProfile.setPermanentlyBanned(rs.getBoolean("permanently_banned"));
-        userProfile.setBanUntil(rs.getDate("ban_until"));
         userProfile.setProfileGender(Gender.values()[rs.getInt("profile_gender")]);
         userProfile.setSeekingFor(Gender.values()[rs.getInt("seeking_for")]);
         return userProfile;

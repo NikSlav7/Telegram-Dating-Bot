@@ -19,6 +19,8 @@ public class TelegramBotCommands {
     public static final String WATCH_LIKED_BY = "/watchliked";
 
     public static final String REPORT_PROFILE = "/reportprofile";
+
+    public static final String SEEK_FOR_PROFILES = "/seekforprofiles";
     Map<String, String> commandsAndDefinitions;
 
     Set<String> commandsOnlyAfterRegistration;

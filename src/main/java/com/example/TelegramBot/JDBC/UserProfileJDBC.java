@@ -39,12 +39,12 @@ public class UserProfileJDBC {
         return userProfileRepository.getUserProfileById(user.getId()).isPresent();
     }
 
-    public void createNewUserProfile(User user){
+    public UserProfile createNewUserProfile(long id){
         UserProfile userProfile = new UserProfile();
-        userProfile.setId(user.getId());
+        userProfile.setId(id);
         userProfile.setLastInvokedCommand(TelegramBotCommands.START);
         userProfile.setProfileRegistrationStage(UserProfileRegistrationStage.NO_INFORMATION);
-        userProfileRepository.save(userProfile);
+        return userProfileRepository.save(userProfile);
     }
 
     public List<UserProfile> getNearestAndClosestByAgeUserProfiles(UserProfile searcher, Location location) {
@@ -82,7 +82,5 @@ public class UserProfileJDBC {
 
 
     //Return null if user is not banned
-    public java.util.Date  getUserBannedUntilDate(UserProfile userProfile) {
-        return userProfile.isBanned() ? null : userProfile.getBanUntil();
-    }
+
 }
